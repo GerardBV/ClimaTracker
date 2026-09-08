@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using WebApi_ClimaTracker.DTOs;
 using WebApi_ClimaTracker.Models;
 using WebApi_ClimaTracker.Models.DTOs.WebApi_ClimaTracker.DTOs;
@@ -50,11 +51,12 @@ namespace WebApi_ClimaTracker.Services
 
             // Étape 2 : météo (coordonnées → données)
             var weatherUrl = $"https://api.open-meteo.com/v1/forecast" +
-                $"?latitude={location.Latitude}&longitude={location.Longitude}" +
-                $"&current=temperature_2m,apparent_temperature,weather_code" +
-                $"&hourly=temperature_2m" +
-                $"&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset" +
-                $"&timezone=auto";
+            $"?latitude={location.Latitude.ToString(CultureInfo.InvariantCulture)}" +
+            $"&longitude={location.Longitude.ToString(CultureInfo.InvariantCulture)}" +
+            $"&current=temperature_2m,apparent_temperature,weather_code" +
+            $"&hourly=temperature_2m" +
+            $"&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset" +
+            $"&timezone=auto";
 
             var weatherResponse = await _httpClient.GetFromJsonAsync<OpenMeteoResponse>(weatherUrl);
 
