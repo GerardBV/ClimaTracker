@@ -11,26 +11,26 @@ namespace WebApi_ClimaTracker.Services
         private readonly HttpClient _httpClient;
         private readonly WebApi_ClimaTrackerContext _context;
 
-        private static readonly Dictionary<int, string> WeatherCodeDescriptions = new()
-        {
-            { 0, "Clear sky" },
-            { 1, "Mainly clear" },
-            { 2, "Partly cloudy" },
-            { 3, "Overcast" },
-            { 45, "Fog" },
-            { 48, "Depositing rime fog" },
-            { 51, "Light drizzle" },
-            { 53, "Moderate drizzle" },
-            { 55, "Dense drizzle" },
-            { 61, "Slight rain" },
-            { 63, "Moderate rain" },
-            { 65, "Heavy rain" },
-            { 71, "Slight snow" },
-            { 73, "Moderate snow" },
-            { 75, "Heavy snow" },
-            { 80, "Rain showers" },
-            { 95, "Thunderstorm" }
-        };
+        //private static readonly Dictionary<int, string> WeatherCodeDescriptions = new()
+        //{
+        //    { 0, "Clear sky" },
+        //    { 1, "Mainly clear" },
+        //    { 2, "Partly cloudy" },
+        //    { 3, "Overcast" },
+        //    { 45, "Fog" },
+        //    { 48, "Depositing rime fog" },
+        //    { 51, "Light drizzle" },
+        //    { 53, "Moderate drizzle" },
+        //    { 55, "Dense drizzle" },
+        //    { 61, "Slight rain" },
+        //    { 63, "Moderate rain" },
+        //    { 65, "Heavy rain" },
+        //    { 71, "Slight snow" },
+        //    { 73, "Moderate snow" },
+        //    { 75, "Heavy snow" },
+        //    { 80, "Rain showers" },
+        //    { 95, "Thunderstorm" }
+        //};
 
         public WeatherApiService(HttpClient httpClient, WebApi_ClimaTrackerContext context)
         {
@@ -41,7 +41,7 @@ namespace WebApi_ClimaTracker.Services
         public async Task<WeatherDto?> GetForecastAsync(string city)
         {
             // Étape 1 : géocodage (nom de ville → coordonnées)
-            var geoUrl = $"https://geocoding-api.open-meteo.com/v1/search?name={Uri.EscapeDataString(city)}";
+            var geoUrl = $"https://geocoding-api.open-meteo.com/v1/search?name={city}";
             var geoResponse = await _httpClient.GetFromJsonAsync<GeocodingDTO>(geoUrl);
 
             if (geoResponse?.Results == null || geoResponse.Results.Count == 0)
@@ -51,8 +51,8 @@ namespace WebApi_ClimaTracker.Services
 
             // Étape 2 : météo (coordonnées → données)
             var weatherUrl = $"https://api.open-meteo.com/v1/forecast" +
-            $"?latitude={location.Latitude.ToString(CultureInfo.InvariantCulture)}" +
-            $"&longitude={location.Longitude.ToString(CultureInfo.InvariantCulture)}" +
+            $"?latitude={location.Latitude.ToString()}" +
+            $"&longitude={location.Longitude.ToString()}" +
             $"&current=temperature_2m,apparent_temperature,weather_code" +
             $"&hourly=temperature_2m" +
             $"&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset" +
@@ -63,9 +63,34 @@ namespace WebApi_ClimaTracker.Services
             if (weatherResponse == null)
                 return null;
 
-            var condition = WeatherCodeDescriptions.TryGetValue(weatherResponse.Current.Weather_code, out var desc)
-                ? desc
-                : "Unknown";
+            var condition = weatherResponse.Current.Weather_code.ToString();
+
+            var hourlyList = new List<HourlyDto>();
+
+            for (int i = 0; i < weatherResponse.Hourly.Time.Count; i++)
+            {
+                var hourlyEntry = new HourlyDto
+                {
+                    Time = weatherResponse.Hourly.Time[i],
+                    Temperature = weatherResponse.Hourly.Temperature_2m[i]
+                };
+
+                hourlyList.Add(hourlyEntry);
+            }
+
+            var dailyList = new List<DailyDto>();
+
+            for (int i = 0; i < weatherResponse.Daily.Time.Count; i++)
+            {
+                var dailyEntry = new DailyDto
+                {
+                    Date = weatherResponse.Daily.Time[i],
+                    MaxTemp = weatherResponse.Daily.Temperature_2m_max[i],
+                    MinTemp = weatherResponse.Daily.Temperature_2m_min[i]
+                };
+
+                dailyList.Add(dailyEntry);
+            }
 
             return new WeatherDto
             {
@@ -77,19 +102,8 @@ namespace WebApi_ClimaTracker.Services
                 Condition = condition,
                 Sunrise = weatherResponse.Daily.Sunrise.FirstOrDefault(),
                 Sunset = weatherResponse.Daily.Sunset.FirstOrDefault(),
-                Hourly = weatherResponse.Hourly.Time
-                    .Zip(weatherResponse.Hourly.Temperature_2m, (time, temp) => new HourlyDto
-                    {
-                        Time = time,
-                        Temperature = temp
-                    }).ToList(),
-                Daily = weatherResponse.Daily.Time
-                    .Select((date, i) => new DailyDto
-                    {
-                        Date = date,
-                        MaxTemp = weatherResponse.Daily.Temperature_2m_max[i],
-                        MinTemp = weatherResponse.Daily.Temperature_2m_min[i]
-                    }).ToList()
+                Hourly = hourlyList,
+                Daily = dailyList
             };
         }
 
