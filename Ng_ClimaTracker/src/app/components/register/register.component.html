@@ -1,1 +1,58 @@
-<p>register works!</p>
+<div class="register-container">
+	<mat-card class="artist-card">
+		<form [formGroup]="regisForm" (ngSubmit)="register()">
+			<mat-form-field appearance="outline">
+				<mat-label>Nom d'utilisateur</mat-label>
+				<input matInput formControlName="userName" name="userName" />
+				<mat-error *ngIf="regisForm.get('userName')?.hasError('required')">
+					Le nom d'utilisateur est <strong>requis</strong>
+				</mat-error>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline">
+				<mat-label>Courriel</mat-label>
+				<input matInput type="email" formControlName="mail" name="mail" />
+				<mat-error *ngIf="regisForm.get('mail')?.hasError('required')">
+					Le courriel est <strong>requis</strong>
+				</mat-error>
+				<mat-error *ngIf="regisForm.get('mail')?.hasError('email')">
+					Entrer une adresse courriel valide
+				</mat-error>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline">
+				<mat-label>Mot de passe</mat-label>
+				<input matInput type="password" formControlName="password" name="password" />
+				<mat-error *ngIf="regisForm.get('password')?.hasError('required')">
+					Le mot de passe est <strong>requis</strong>
+				</mat-error>
+				<mat-error *ngIf="regisForm.get('password')?.hasError('minlength')">
+					Le mot de passe doit avoir au moins 6 caractères
+				</mat-error>
+			</mat-form-field>
+
+			<mat-form-field appearance="outline">
+				<mat-label>Confirmation du mot de passe</mat-label>
+				<input matInput type="password" formControlName="confirmPass" name="confirmPass" />
+				<mat-error *ngIf="regisForm.get('confirmPass')?.hasError('required')">
+					La confirmation du mot de passe est <strong>requise</strong>
+				</mat-error>
+				<mat-error *ngIf="regisForm.hasError('notMatchPassword') && regisForm.get('confirmPass')?.touched">
+					Les mots de passe ne correspondent pas
+				</mat-error>
+			</mat-form-field>
+
+			<button mat-raised-button color="primary" type="submit" [disabled]="regisForm.invalid">
+				Registrer
+			</button>
+		</form>
+
+		<div *ngFor="let err of serverErrors">
+			<mat-error>{{ err }}</mat-error>
+		</div>
+
+		<button mat-raised-button color="accent" type="button" [routerLink]="['/login']">
+			Ce Connecter
+		</button>
+	</mat-card>
+</div>

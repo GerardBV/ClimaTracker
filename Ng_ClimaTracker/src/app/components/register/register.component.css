@@ -1,0 +1,25 @@
+.register-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100%;
+	padding: 32px 16px;
+}
+
+.artist-card {
+	display: flex;
+	gap: 16px;
+	width: min(100%, 420px);
+	padding: 32px;
+}
+
+form {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+mat-form-field,
+button {
+	width: 100%;
+}

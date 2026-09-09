@@ -1,1 +1,32 @@
-<p>login works!</p>
+
+<div class="login-container">
+    <mat-card class="artist-card">
+        <form [formGroup]="loginForm" (ngSubmit)="login()">
+            <mat-form-field appearance="outline">
+                <mat-label>Nom d'utilisateur</mat-label>
+                <input matInput formControlName="userName" name="userName" />
+                <mat-error *ngIf="loginForm.get('userName')?.hasError('required')">
+                    Le nom d'utilisateur est <strong>requis</strong>
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Mot de passe</mat-label>
+                <input matInput type="password" formControlName="password" name="password" />
+                <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+                    Le mot de passe est <strong>requis</strong>
+                </mat-error>
+            </mat-form-field>
+
+            <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">
+                Connecter
+            </button>
+        </form>
+
+        <mat-error class="server-error">{{ serverError }}</mat-error>
+
+        <button mat-raised-button color="accent" type="button" [routerLink]="['/register']">
+            Ce Registrer
+        </button>
+    </mat-card>
+</div>
